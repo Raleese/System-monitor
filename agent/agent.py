@@ -10,5 +10,11 @@ while True:
         "memory": psutil.virtual_memory().percent,
         "disk": psutil.disk_usage("/").percent
     }
-    requests.post("http://localhost:8000/metrics", json=metrics)
+    try:
+        response = requests.post("http://localhost:8000/metrics", json=metrics)
+        print(f"Server response: {response.status_code}")
+    except requests.RequestException as e:
+        print(f"Could not reach the server: {e}")
+
+
     time.sleep(10)
