@@ -9,7 +9,7 @@ export interface Metrics {
 
 export interface MetricChartProps {
     data: Metrics[];
-    metric: 'cpu' | 'memory';
+    metric: 'cpu' | 'memory' | 'disk';
     title: string;
     color: string;
 }
