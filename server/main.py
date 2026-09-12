@@ -41,4 +41,14 @@ def metrics_latest():
 @app.get("/metrics/history")
 def metrics_history():
     rows = db.get_all_metrics()
-    return rows
+    return [
+        {
+            "id": row[0],
+            "hostname": row[1],
+            "cpu": row[2],
+            "memory": row[3],
+            "disk": row[4],
+            "timestamp": row[5]
+        }
+        for row in rows
+    ]
