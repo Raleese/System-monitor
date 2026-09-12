@@ -45,7 +45,19 @@ function App() {
                     <h1 className="text-3xl font-bold">System Infrastructure Monitor</h1>
                     <p>Machine: {metrics.hostname}</p>
                     <p>CPU Usage: {metrics.cpu}%</p>
+                    <MetricChart
+                        data={history}
+                        metric="cpu"
+                        title="CPU Usage"
+                        color="#ef4444"
+                    />
                     <p>Memory Usage: {metrics.memory}%</p>
+                    <MetricChart
+                        data={history}
+                        metric="memory"
+                        title="Memory Usage"
+                        color="#3b82f6"
+                    />
                     <p>Disk Usage: {metrics.disk}%</p>
                     <p>Last Updated: {new Date(metrics.timestamp).toLocaleString()}</p>
                 </header>
