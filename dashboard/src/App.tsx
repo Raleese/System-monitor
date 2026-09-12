@@ -40,27 +40,43 @@ function App() {
 
     return (
         <div className="App">
-            <div className="display: flex flex-col items-center justify-center">
-                <header className="App-header">
-                    <h1 className="text-3xl font-bold">System Infrastructure Monitor</h1>
-                    <p>Machine: {metrics.hostname}</p>
-                    <p>CPU Usage: {metrics.cpu}%</p>
-                    <MetricChart
-                        data={history}
-                        metric="cpu"
-                        title="CPU Usage"
-                        color="#ef4444"
-                    />
-                    <p>Memory Usage: {metrics.memory}%</p>
-                    <MetricChart
-                        data={history}
-                        metric="memory"
-                        title="Memory Usage"
-                        color="#3b82f6"
-                    />
-                    <p>Disk Usage: {metrics.disk}%</p>
-                    <p>Last Updated: {new Date(metrics.timestamp).toLocaleString()}</p>
-                </header>
+            <div className="flex flex-col items-center justify-center gap-4 p-4">
+                <h1 className="text-2xl font-bold">System Infrastructure Monitor</h1>
+                <div className="w-full rounded-lg border border-slate-300 bg-slate-100 p-4 shadow-sm">
+                    <div className="flex w-full flex-col items-center gap-6">
+                        <p className="font-semibold text-slate-700">Machine: {metrics.hostname}</p>
+                        <div className="flex w-full flex-col gap-6 md:flex-row md:items-start">
+                            <div className="md:w-1/3">
+                                <p>CPU Usage: {metrics.cpu}%</p>
+                                <MetricChart
+                                    data={history.slice(-10)} // Show only the last 10 data points
+                                    metric="cpu"
+                                    title="CPU Usage"
+                                    color="#ef4444"
+                                />
+                            </div>
+                            <div className="md:w-1/3">
+                                <p>Memory Usage: {metrics.memory}%</p>
+                                <MetricChart
+                                    data={history.slice(-10)} // Show only the last 10 data points
+                                    metric="memory"
+                                    title="Memory Usage"
+                                    color="#3b82f6"
+                                />
+                            </div>
+                            <div className="md:w-1/3">
+                                <p>Disk Usage: {metrics.disk}%</p>
+                                <MetricChart
+                                    data={history.slice(-10)} // Show only the last 10 data points
+                                    metric="disk"
+                                    title="Disk Usage"
+                                    color="#8b5cf6"
+                                />
+                            </div>
+                        </div>
+                        <p>Last Updated: {new Date(metrics.timestamp).toLocaleString()}</p>
+                    </div>
+                </div>
             </div>
         </div>
     );
