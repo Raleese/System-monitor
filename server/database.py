@@ -50,6 +50,6 @@ def get_latest_metrics():
             ORDER BY id DESC
             LIMIT 1
         ''')
-    rows = cursor.fetchall()
+    row = cursor.fetchone()
     conn.close()
-    return rows
+    return row
