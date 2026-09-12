@@ -1,7 +1,16 @@
 from fastapi import FastAPI
-import database as db
+from server import database as db
+from fastapi.middleware.cors import CORSMiddleware  
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 db.create_metrics_table()
 
 @app.get("/health")
@@ -15,8 +24,19 @@ def metrics(data: dict):
 
 @app.get("/metrics/latest")
 def metrics_latest():
-    rows = db.get_latest_metrics()
-    return rows
+    row = db.get_latest_metrics()
+
+    if row is None:
+        return None
+
+    return {
+        "id": row[0],
+        "hostname": row[1],
+        "cpu": row[2],
+        "memory": row[3],
+        "disk": row[4],
+        "timestamp": row[5]
+    }
 
 @app.get("/metrics/history")
 def metrics_history():
