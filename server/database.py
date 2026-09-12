@@ -36,7 +36,7 @@ def insert_metrics(data):
 def get_all_metrics():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''SELECT * FROM metrics''')
+    cursor.execute('''SELECT * FROM metrics ORDER BY id ASC''')
     rows = cursor.fetchall()
     conn.close()
     return rows
