@@ -33,6 +33,8 @@ def insert_metrics(data):
     conn.commit()
     conn.close()
 
+    delete_old_metrics(keep_count=1000)  # Keep only the latest 1000 records
+
 def get_all_metrics():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -53,3 +55,21 @@ def get_latest_metrics():
     row = cursor.fetchone()
     conn.close()
     return row
+
+def delete_old_metrics(keep_count: int = 1000):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM metrics
+        WHERE id NOT IN (
+            SELECT id
+            FROM metrics
+            ORDER BY id DESC
+            LIMIT ?
+        )
+    """, (keep_count,))
+
+    conn.commit()
+    cursor.execute("VACUUM")
+    conn.close()
