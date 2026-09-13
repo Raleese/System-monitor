@@ -1,4 +1,4 @@
-import type { Metrics } from './interfaces';
+import type { Metrics, Alert } from './interfaces';
 
 const API_URL = "http://localhost:8000";
 
@@ -20,4 +20,14 @@ export async function getMetricsHistory(): Promise<Metrics[]> {
     }
 
     return response.json(); 
+}
+
+export async function getAlerts(): Promise<Alert[]> {
+    const response = await fetch(`${API_URL}/metrics/alerts`);
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch alerts");
+    }
+
+    return response.json();
 }
