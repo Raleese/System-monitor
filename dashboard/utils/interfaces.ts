@@ -10,6 +10,13 @@ export interface Metrics {
 export interface MetricChartProps {
     data: Metrics[];
     metric: 'cpu' | 'memory' | 'disk';
-    title: string;
     color: string;
+}
+
+export interface Alert {
+    id: number;
+    hostname: string;
+    metric: 'CPU' | 'Memory' | 'Disk';
+    value: number;
+    timestamp: string;
 }
