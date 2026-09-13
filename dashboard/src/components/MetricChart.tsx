@@ -9,10 +9,9 @@ import {
 } from "recharts";
 import type { MetricChartProps } from "../../utils/interfaces";
 
-function MetricChart({ data, metric, title, color }: MetricChartProps) {
+function MetricChart({ data, metric, color }: MetricChartProps) {
     return (
         <section>
-            <h2>{title}</h2>
             <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={data}>
                     <CartesianGrid strokeDasharray="3 3" />
