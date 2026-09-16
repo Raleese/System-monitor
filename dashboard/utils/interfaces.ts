@@ -1,5 +1,6 @@
 export interface Metrics {
     id: number;
+    device_id: string;
     hostname: string;
     cpu: number;
     memory: number;
@@ -19,4 +20,9 @@ export interface Alert {
     metric: 'CPU' | 'Memory' | 'Disk';
     value: number;
     timestamp: string;
+}
+
+export interface Device {
+    device_id: string;
+    hostname: string;
 }
