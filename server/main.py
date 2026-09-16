@@ -27,35 +27,46 @@ def metrics(data: dict):
     return {"status": "metrics received"}
 
 @app.get("/metrics/latest")
-def metrics_latest():
-    row = db.get_latest_metrics()
+def metrics_latest(device_id: str):
+    row = db.get_latest_metrics(device_id)
 
     if row is None:
         return None
 
     return {
         "id": row[0],
-        "hostname": row[1],
-        "cpu": row[2],
-        "memory": row[3],
-        "disk": row[4],
-        "timestamp": row[5]
+        "device_id": row[1],
+        "hostname": row[2],
+        "cpu": row[3],
+        "memory": row[4],
+        "disk": row[5],
+        "timestamp": row[6]
     }
 
 @app.get("/metrics/history")
-def metrics_history():
-    rows = db.get_all_metrics()
+def metrics_history(device_id: str):
+    rows = db.get_all_metrics(device_id)
     return [
         {
             "id": row[0],
-            "hostname": row[1],
-            "cpu": row[2],
-            "memory": row[3],
-            "disk": row[4],
-            "timestamp": row[5]
+            "device_id": row[1],
+            "hostname": row[2],
+            "cpu": row[3],
+            "memory": row[4],
+            "disk": row[5],
+            "timestamp": row[6]
         }
         for row in rows
     ]
+
+@app.get("/metrics/devices")
+def metrics_devices():
+    rows = db.get_device_ids()
+
+    return [{
+        "device_id": row[0],
+        "hostname": row[1]
+    } for row in rows]
 
 @app.get("/metrics/alerts")
 def metrics_alerts():
