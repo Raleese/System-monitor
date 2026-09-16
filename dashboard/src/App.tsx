@@ -1,9 +1,23 @@
 import { useEffect, useState } from 'react';
-import type { Metrics, Alert } from '../utils/interfaces';
-import { getLatestMetrics, getMetricsHistory, getAlerts } from '../utils/api_requests';
+import type { Metrics, Alert, Device } from '../utils/interfaces';
+import { getLatestMetrics, getMetricsHistory, getAlerts, getDeviceIds } from '../utils/api_requests';
 import MetricChart from './components/MetricChart';
 
 function App() {
+
+    const [deviceIds, setDeviceIds] = useState<Device[]>([]);
+
+    useEffect(() => {
+        const fetchDeviceIds = async () => {
+            try {
+                const devices = await getDeviceIds();
+                setDeviceIds(devices);
+            } catch (error) {
+                console.error("Error fetching device IDs:", error);
+            }
+        };
+        fetchDeviceIds();
+    }, []);
 
     const [metrics, setMetrics] = useState<Metrics | null>(null);
     const [history, setHistory] = useState<Metrics[]>([]);
@@ -14,9 +28,12 @@ function App() {
 
         const fetchMetrics = async () => {
             try {
-                const latestMetrics = await getLatestMetrics();
-                const latestHistory = await getMetricsHistory();
-                const latestAlerts = await getAlerts();
+                if (!deviceIds.length) {
+                    return;
+                }
+                const latestMetrics = await getLatestMetrics(deviceIds[0].device_id);
+                const latestHistory = await getMetricsHistory(deviceIds[0].device_id);
+                const latestAlerts = await getAlerts(deviceIds[0].device_id);
                 if (isMounted) {
                     setMetrics(latestMetrics);
                     setHistory(latestHistory);
