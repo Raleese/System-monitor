@@ -1,6 +1,6 @@
 import type { Metrics, Alert, Device } from './interfaces';
 
-const API_URL = "http://192.168.0.4:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
 export async function getLatestMetrics(device_id: string): Promise<Metrics>{
     const response = await fetch(`${API_URL}/metrics/latest?device_id=${device_id}`);
