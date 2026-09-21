@@ -78,20 +78,26 @@ npm run dev
 
 Open the URL printed by Vite, usually `http://localhost:5173`.
 
+For agents running on another machine, start the API with `uvicorn server.main:app --host 0.0.0.0 --reload`, then set `MONITOR_SERVER_URL` to the host machine's LAN URL before starting each agent. To point the dashboard at a remote API, set `VITE_API_URL` before running Vite.
+
+Runtime settings can be configured with environment variables. Copy `.env.example` as a reference; do not commit your actual `.env` files. Thresholds, retention, collection interval, database path, CORS origins, and API URLs all have local defaults.
+
 ## API endpoints
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | `GET` | `/health` | Returns the server health status. |
 | `POST` | `/metrics` | Stores a metric reading. |
-| `GET` | `/metrics/latest` | Returns the newest reading. |
-| `GET` | `/metrics/history` | Returns stored readings in ascending order. |
-| `GET` | `/metrics/alerts` | Returns alerts for the latest reading from each host. |
+| `GET` | `/metrics/latest?device_id=...` | Returns the newest reading for a device. |
+| `GET` | `/metrics/history?device_id=...` | Returns stored readings for a device in ascending order. |
+| `GET` | `/metrics/devices` | Returns known devices. |
+| `GET` | `/metrics/alerts?device_id=...` | Returns alerts for the latest reading from a device. |
 
 Example metric payload:
 
 ```json
 {
+	"device_id": "unique-device-id",
 	"hostname": "example-machine",
 	"cpu": 42.5,
 	"memory": 61.2,
