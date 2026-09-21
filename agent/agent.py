@@ -6,7 +6,8 @@ import os
 import uuid
 from pathlib import Path
 
-SERVER_URL = os.getenv("MONITOR_SERVER_URL", "http://192.168.0.4:8000")
+SERVER_URL = os.getenv("MONITOR_SERVER_URL", "http://127.0.0.1:8000").rstrip("/")
+COLLECTION_INTERVAL = float(os.getenv("MONITOR_COLLECTION_INTERVAL", "10"))
 DEVICE_ID_FILE = Path(__file__).with_name(".device_id")
 
 def get_device_id() -> str:
@@ -25,7 +26,7 @@ while True:
         "hostname": socket.gethostname(),
         "cpu": psutil.cpu_percent(interval=1),
         "memory": psutil.virtual_memory().percent,
-        "disk": psutil.disk_usage("/").percent
+        "disk": psutil.disk_usage(Path.home().anchor).percent
     }
     try:
         response = requests.post(SERVER_URL + "/metrics", json=metrics)
@@ -34,4 +35,4 @@ while True:
         print(f"Could not reach the server: {e}")
 
 
-    time.sleep(10)
+    time.sleep(COLLECTION_INTERVAL)
