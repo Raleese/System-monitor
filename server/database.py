@@ -1,7 +1,9 @@
 import sqlite3
+import os
 from pathlib import Path
 
-DATABASE_PATH = Path(__file__).parent / "metrics.db"
+DATABASE_PATH = Path(os.getenv("MONITOR_DATABASE_PATH", str(Path(__file__).parent / "metrics.db")))
+RETENTION_COUNT = int(os.getenv("MONITOR_RETENTION_COUNT", "1000"))
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE_PATH)
@@ -34,9 +36,9 @@ def insert_metrics(data):
     conn.commit()
     conn.close()
 
-    delete_old_metrics(keep_count=1000)  # Keep only the latest 1000 records
+    delete_old_metrics(keep_count=RETENTION_COUNT)
 
-def get_all_metrics(device_id : str):
+def get_all_metrics(device_id: str):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -49,7 +51,7 @@ def get_all_metrics(device_id : str):
     conn.close()
     return rows
 
-def get_latest_metrics(device_id : str):
+def get_latest_metrics(device_id: str):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -80,14 +82,14 @@ def delete_old_metrics(keep_count: int = 1000):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    rows = getdevice_ids()
+    rows = get_device_ids()
 
     for row in rows:
         device_id = row[0]
 
         cursor.execute("""
             DELETE FROM metrics
-            WHERE devuce_id = ?
+            WHERE device_id = ?
             AND id NOT IN (
                 SELECT id
                 FROM metrics
@@ -95,7 +97,7 @@ def delete_old_metrics(keep_count: int = 1000):
                 ORDER BY id DESC
                 LIMIT ?
             )
-        """, (device_id, keep_count,))
+        """, (device_id, device_id, keep_count))
 
     conn.commit()
     cursor.execute("VACUUM")
