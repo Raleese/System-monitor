@@ -16,6 +16,7 @@ export interface MetricChartProps {
 
 export interface Alert {
     id: number;
+    device_id: string;
     hostname: string;
     metric: 'CPU' | 'Memory' | 'Disk';
     value: number;
