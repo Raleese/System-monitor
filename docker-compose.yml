@@ -27,20 +27,5 @@ services:
       server:
         condition: service_healthy
 
-  agent:
-    build:
-      context: .
-      dockerfile: Dockerfile.agent
-    environment:
-      MONITOR_SERVER_URL: http://server:8000
-      MONITOR_DEVICE_ID_FILE: /data/.device_id
-    volumes:
-      - agent-id:/data
-    depends_on:
-      server:
-        condition: service_healthy
-    restart: unless-stopped
-
 volumes:
   metrics-data:
-  agent-id:
