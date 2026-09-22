@@ -1,127 +1,156 @@
 # System Monitor
 
-A small local system monitoring application. It collects CPU, memory, and disk usage from a machine, stores the readings in SQLite, and displays the latest values, recent history, and threshold alerts in a React dashboard.
+A small system monitoring application that collects CPU, memory, and disk usage, stores readings in SQLite, and displays the latest values, history, and threshold alerts in a React dashboard.
 
 ## Architecture
 
 The project has three parts:
 
 - **Agent** (`agent/agent.py`) collects metrics with `psutil` every 10 seconds and sends them to the API.
-- **Server** (`server/main.py`) provides a FastAPI API and stores metrics in `server/metrics.db`.
-- **Dashboard** (`dashboard/`) is a Vite + React application that polls the API every 10 seconds.
+- **Server** (`server/main.py`) provides the FastAPI API and stores metrics in SQLite.
+- **Dashboard** (`dashboard/`) is a React and Vite application that polls the API every 10 seconds.
+
+The repository also includes Docker support.
 
 ## Requirements
+
+For local development:
 
 - Python 3.10 or newer
 - Node.js 18 or newer and npm
 
-## Setup
+For Docker:
 
-Clone the repository and open a terminal in the project root.
+- Docker Desktop with the Linux container engine running
 
-### 1. Install Python dependencies
+## Quick Start With Docker
 
-Create and activate a virtual environment, then install the packages used by the server and agent:
-
-```bash
-python -m venv .venv
-```
-
-Windows PowerShell:
+From the repository root, build and start the API and dashboard:
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
-pip install fastapi uvicorn psutil requests
+docker compose up --build
 ```
 
-macOS/Linux:
+Open the dashboard at `http://localhost:5173`.
 
-```bash
-source .venv/bin/activate
-pip install fastapi uvicorn psutil requests
+The API is available at `http://localhost:8000`, and its health endpoint is:
+
+```text
+http://localhost:8000/health
 ```
 
-### 2. Install dashboard dependencies
+To stop the services:
 
-```bash
-cd dashboard
-npm install
-cd ..
+```powershell
+docker compose down
 ```
 
-## Run the application
+To stop the services and delete the stored SQLite data:
 
-Open three terminals in the project root and activate the virtual environment in the terminals that run Python commands.
-
-### Start the API server
-
-```bash
-uvicorn server.main:app --reload
+```powershell
+docker compose down -v
 ```
 
-The API is available at `http://localhost:8000`. The SQLite database is created automatically at `server/metrics.db`.
+### Run an agent on a monitored device
 
-### Start the metrics agent
+Keep the API and dashboard running on the server machine, then install and run the agent directly on every device that should be monitored. On the server machine itself:
 
-```bash
+```powershell
+docker compose up --build -d
+$env:MONITOR_SERVER_URL = "http://localhost:8000"
 python agent/agent.py
 ```
 
-The agent sends metrics to the API every 10 seconds. Keep this process running while using the dashboard.
-
-### Start the dashboard
+On another device, set the URL to the server machine's LAN address. For example:
 
 ```bash
-cd dashboard
-npm run dev
+MONITOR_SERVER_URL=http://192.168.1.20:8000 python agent/agent.py
 ```
 
-Open the URL printed by Vite, usually `http://localhost:5173`.
+On Windows PowerShell:
 
-For agents running on another machine, start the API with `uvicorn server.main:app --host 0.0.0.0 --reload`, then set `MONITOR_SERVER_URL` to the host machine's LAN URL before starting each agent. To point the dashboard at a remote API, set `VITE_API_URL` before running Vite.
+```powershell
+$env:MONITOR_SERVER_URL = "http://192.168.1.20:8000"
+python agent/agent.py
+```
 
-Runtime settings can be configured with environment variables. Copy `.env.example` as a reference; do not commit your actual `.env` files. Thresholds, retention, collection interval, database path, CORS origins, and API URLs all have local defaults.
+The API must be reachable from each monitored device on port `8000`. If the API runs on another machine, start it with Docker as usual and allow port `8000` through that machine's firewall.
 
-## API endpoints
+## Configuration
 
-| Method | Endpoint | Description |
+The application uses environment variables with local defaults.
+
+### Server variables
+
+| Variable | Default | Description |
 | --- | --- | --- |
-| `GET` | `/health` | Returns the server health status. |
-| `POST` | `/metrics` | Stores a metric reading. |
-| `GET` | `/metrics/latest?device_id=...` | Returns the newest reading for a device. |
-| `GET` | `/metrics/history?device_id=...` | Returns stored readings for a device in ascending order. |
-| `GET` | `/metrics/devices` | Returns known devices. |
-| `GET` | `/metrics/alerts?device_id=...` | Returns alerts for the latest reading from a device. |
+| `MONITOR_DATABASE_PATH` | `server/metrics.db` | SQLite database path outside Docker. Compose sets it to `/data/metrics.db`. |
+| `MONITOR_ALLOWED_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | Comma-separated dashboard origins allowed by CORS. |
+| `MONITOR_CPU_THRESHOLD` | `90` | CPU alert threshold as a percentage. |
+| `MONITOR_MEMORY_THRESHOLD` | `78` | Memory alert threshold as a percentage. |
+| `MONITOR_DISK_THRESHOLD` | `95` | Disk alert threshold as a percentage. |
+| `MONITOR_RETENTION_COUNT` | `1000` | Number of readings retained per device. |
 
-Example metric payload:
+### Agent variables
 
-```json
-{
-	"device_id": "unique-device-id",
-	"hostname": "example-machine",
-	"cpu": 42.5,
-	"memory": 61.2,
-	"disk": 73.8
-}
+| Variable | Default | Description |
+| --- | --- | --- |
+| `MONITOR_SERVER_URL` | `http://127.0.0.1:8000` | API URL used by the agent. Set it to the server machine's LAN address on remote devices. |
+| `MONITOR_COLLECTION_INTERVAL` | `10` | Seconds between metric submissions. |
+| `MONITOR_DEVICE_ID_FILE` | `agent/.device_id` | File used to persist the agent's device ID. |
+
+### Dashboard variable
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `VITE_API_URL` | `http://127.0.0.1:8000` | API URL embedded into the frontend during the Vite build. |
+
+For Docker builds, pass it as a build argument. The browser must be able to resolve the URL; Docker service names such as `server` are only resolvable from other containers.
+
+## Persistence and Device IDs
+
+The server creates the SQLite database automatically. In Docker, the database is stored in the named `metrics-data` volume so it survives container recreation.
+
+Each agent generates a UUID the first time it runs and stores it in `.device_id`. When the agent runs directly on a device, keep that file so the device keeps the same identity between runs. Delete the file only when you intentionally want the device to appear as a new device.
+
+```powershell
+Remove-Item agent\.device_id
 ```
 
-## Alert thresholds and retention
+Every monitored device should run one host agent. The dashboard identifies devices using each agent's hostname and persistent device ID.
 
-The API reports an alert when a value is above one of these thresholds:
+## Alerts and Retention
+
+The API reports an alert when a value is above these thresholds:
 
 - CPU: `90%`
 - Memory: `78%`
 - Disk: `95%`
 
-The database keeps the latest 1,000 metric records.
+The default retention limit is 1,000 readings per device.
 
-## Development commands
+## Troubleshooting
 
-Run these from the `dashboard` directory:
+### Docker cannot connect to the Docker API
 
-```bash
-npm run dev      # Start the development server
-npm run build    # Type-check and build for production
-npm run lint     # Run ESLint
-npm run preview  # Preview the production build
+Start Docker Desktop and make sure its Linux container engine is running, then retry:
+
+```powershell
+docker compose up --build
 ```
+
+### Dashboard cannot load devices
+
+Check that the API is running at `http://localhost:8000/health`, that the dashboard was built with the correct `VITE_API_URL`, and that the API's `MONITOR_ALLOWED_ORIGINS` includes the dashboard URL.
+
+### The dashboard shows the wrong device
+
+Run `python agent/agent.py` directly on the monitored device. Do not use a containerized agent for this use case, because it reports the container's identity and resource environment instead of the physical device.
+
+### A remote device cannot send metrics
+
+Set `MONITOR_SERVER_URL` to the API host's LAN address, verify that the device can reach port `8000`, and allow inbound TCP port `8000` through the API host's firewall. Do not use `localhost` on a remote device; it points back to that device itself.
+
+### Port already in use
+
+Change the host side of the port mapping in `docker-compose.yml`. For example, change `5173:80` to `8080:80`, then also add `http://localhost:8080` to `MONITOR_ALLOWED_ORIGINS`.
