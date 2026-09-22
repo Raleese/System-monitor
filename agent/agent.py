@@ -8,7 +8,9 @@ from pathlib import Path
 
 SERVER_URL = os.getenv("MONITOR_SERVER_URL", "http://127.0.0.1:8000").rstrip("/")
 COLLECTION_INTERVAL = float(os.getenv("MONITOR_COLLECTION_INTERVAL", "10"))
-DEVICE_ID_FILE = Path(__file__).with_name(".device_id")
+DEVICE_ID_FILE = Path(
+    os.getenv("MONITOR_DEVICE_ID_FILE", str(Path(__file__).with_name(".device_id")))
+)
 
 def get_device_id() -> str:
     if DEVICE_ID_FILE.exists():
