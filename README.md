@@ -2,6 +2,10 @@
 
 A small system monitoring application that collects CPU, memory, and disk usage, stores readings in SQLite, and displays the latest values, history, and threshold alerts in a React dashboard.
 
+## Demonstration
+
+
+
 ## Architecture
 
 The project has three parts:
@@ -22,6 +26,12 @@ For local development:
 For Docker:
 
 - Docker Desktop with the Linux container engine running
+
+For tests:
+
+```powershell
+pip install -r requirements-dev.txt
+```
 
 ## Quick Start With Docker
 
@@ -128,6 +138,16 @@ The API reports an alert when a value is above these thresholds:
 - Disk: `95%`
 
 The default retention limit is 1,000 readings per device.
+
+## Tests
+
+Run the API and database tests from the repository root:
+
+```powershell
+python -m pytest tests -q
+```
+
+The tests use temporary SQLite databases, so they do not modify the development database.
 
 ## Troubleshooting
 
