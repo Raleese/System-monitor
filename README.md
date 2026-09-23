@@ -4,7 +4,7 @@ A small system monitoring application that collects CPU, memory, and disk usage,
 
 ## Demonstration
 
-
+<img width="1916" height="1062" alt="Recording 2026-09-23 134606" src="https://github.com/user-attachments/assets/8fe7c4ca-5b3c-498e-b64a-13c325328715" />
 
 ## Architecture
 
